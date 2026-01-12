@@ -321,7 +321,7 @@ const StatCard: React.FC<{
 }) => (
   <div 
     onClick={onClick}
-    className={`bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-md transition-all duration-300 group ${onClick ? 'cursor-pointer active:scale-95 hover:border-blue-500/50 hover:shadow-lg' : ''}`}
+    className={`bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-md transition-all duration-300 group overflow-hidden ${onClick ? 'cursor-pointer active:scale-95 hover:border-blue-500/50 hover:shadow-lg' : ''}`}
   >
     <div className="flex justify-between items-start mb-4">
         <div className="bg-slate-100 dark:bg-slate-950 p-3 rounded-lg text-slate-600 dark:text-slate-300 group-hover:bg-blue-600 group-hover:text-white transition-all">
@@ -329,9 +329,9 @@ const StatCard: React.FC<{
         </div>
         {onClick && <ArrowRight size={16} className="text-slate-400 dark:text-slate-300 -rotate-45 group-hover:rotate-0 group-hover:text-blue-500 transition-all duration-300" />}
     </div>
-    <div className={`text-3xl font-bold tracking-tight mb-1 ${colorClass}`}>{value}</div>
-    <div className="flex justify-between items-end">
-        <label className="text-base font-semibold text-slate-600 dark:text-slate-300">{label}</label>
+    <div className={`text-3xl font-bold tracking-tight mb-1 break-words ${colorClass}`}>{value}</div>
+    <div className="flex justify-between items-end min-w-0">
+        <label className="text-base font-semibold text-slate-600 dark:text-slate-300 truncate">{label}</label>
     </div>
     {subText && <div className={`text-xs mt-2 font-bold inline-block px-3 py-1 rounded-md ${subTextClass || 'bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300'}`}>{subText}</div>}
   </div>
