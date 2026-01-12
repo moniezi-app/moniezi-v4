@@ -218,36 +218,44 @@ export default function InsightsDashboard({
         </div>
       </div>
 
-      {/* Stats Bar - Responsive with horizontal scroll on mobile */}
-      <div className="px-3 sm:px-5 py-2 sm:py-3 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
-        <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm min-w-max">
+      {/* Stats Bar - Responsive grid layout */}
+      <div className="px-3 sm:px-5 py-2 sm:py-3 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+          {/* Total */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="text-slate-600 dark:text-slate-400">Total:</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.total}</span>
           </div>
-          <div className="h-3 sm:h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
+          
+          {/* Divider - hidden on mobile */}
+          <div className="hidden sm:block h-3 sm:h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
+          
+          {/* Actionable - moved to second position for priority */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Target className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
+            <span className="text-slate-600 dark:text-slate-400">Action:</span>
+            <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.actionable}</span>
+          </div>
+          
+          {/* High */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-500"></span>
             <span className="text-slate-600 dark:text-slate-400">High:</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.high}</span>
           </div>
+          
+          {/* Medium */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500"></span>
-            <span className="text-slate-600 dark:text-slate-400">Medium:</span>
+            <span className="text-slate-600 dark:text-slate-400">Med:</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.medium}</span>
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          
+          {/* Low */}
+          <div className="flex items-center gap-1.5 sm:gap-2 col-span-2 sm:col-span-1">
             <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500"></span>
             <span className="text-slate-600 dark:text-slate-400">Low:</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.low}</span>
-          </div>
-          <div className="h-3 sm:h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Target className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
-            <span className="text-slate-600 dark:text-slate-400">Actionable:</span>
-            <span className="font-semibold text-slate-900 dark:text-slate-100">
-              {stats.actionable}
-            </span>
           </div>
         </div>
       </div>
