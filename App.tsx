@@ -1748,8 +1748,10 @@ html:not(.dark) .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-col
            <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
              <div className="flex items-center justify-between mb-2 pl-2">
                  <div className="flex items-center gap-3">
-                     <div className={`p-2.5 rounded-lg ${currentPage === Page.Income ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : currentPage === Page.Expenses ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-500' : 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'}`}>{currentPage === Page.Income ? <TrendingUp size={24} strokeWidth={1.5}/> : currentPage === Page.Expenses ? <TrendingDown size={24} strokeWidth={1.5}/> : <History size={24} strokeWidth={1.5} />}</div>
-                     <h2 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white font-brand">{currentPage === Page.Income ? 'Income' : currentPage === Page.Expenses ? 'Expenses' : 'Ledger'}</h2>
+                     <div className="flex items-center gap-3">
+                       <div className={`p-2.5 rounded-lg ${currentPage === Page.Income ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : currentPage === Page.Expenses ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-500' : 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'}`}>{currentPage === Page.Income ? <TrendingUp size={24} strokeWidth={1.5}/> : currentPage === Page.Expenses ? <TrendingDown size={24} strokeWidth={1.5}/> : <History size={24} strokeWidth={1.5} />}</div>
+                       <h2 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white font-brand">{currentPage === Page.Income ? 'Income' : currentPage === Page.Expenses ? 'Expenses' : 'Ledger'}</h2>
+                     </div>
                  </div>
                  {(currentPage === Page.Income || currentPage === Page.Expenses || currentPage === Page.AllTransactions) && (
                     <button onClick={() => handleOpenFAB(getHeaderFabType())} className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-500 transition-all"><Plus size={24} strokeWidth={2.5} /></button>
@@ -1808,8 +1810,13 @@ html:not(.dark) .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-col
 
         {currentPage === Page.Invoices && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-            <div className="flex items-center justify-between pl-2">
-              <h2 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white font-brand">Invoices</h2>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                  <FileText size={24} strokeWidth={1.5} />
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white font-brand">Invoices</h2>
+              </div>
               <button onClick={() => handleOpenFAB('billing')} className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-500 transition-all"><Plus size={24} strokeWidth={2.5} /></button>
             </div>
             <PeriodSelector period={filterPeriod} setPeriod={setFilterPeriod} refDate={referenceDate} setRefDate={setReferenceDate} />
@@ -1860,7 +1867,12 @@ html:not(.dark) .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-col
 
         {currentPage === Page.Reports && (
            <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-              <h2 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white pl-2 font-brand">Reports</h2>
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                  <BarChart3 size={24} strokeWidth={1.5} />
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white font-brand">Reports</h2>
+              </div>
               <div ref={taxSnapshotRef} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-8 rounded-lg shadow-xl relative overflow-hidden border border-slate-200 dark:border-slate-800">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-blue-50 dark:bg-blue-600/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
                 <div className="flex items-center justify-between mb-8 relative z-10">
