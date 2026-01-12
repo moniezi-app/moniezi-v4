@@ -13,6 +13,7 @@ import {
   ShoppingCart,
   Bell,
   Sparkles,
+  Brain,
   ChevronDown,
   ChevronUp,
   ChevronRight,
@@ -86,7 +87,7 @@ export default function InsightsDashboard({
   onClose,
 }: Props) {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(["high", "medium"]));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set()); // All collapsed by default
   const [expandedInsights, setExpandedInsights] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -317,10 +318,10 @@ export default function InsightsDashboard({
         <div className="pr-24">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-              <Sparkles className="w-5 h-5" />
+              <Brain className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Smart Insights</h2>
+              <h2 className="text-xl font-bold uppercase tracking-wide">SMART INSIGHTS</h2>
               <p className="text-xs text-white/80">{stats.active} active insights</p>
             </div>
           </div>
@@ -357,7 +358,7 @@ export default function InsightsDashboard({
         {stats.active === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-6">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center mb-4 shadow-lg">
-              <Sparkles className="w-8 h-8 text-white" />
+              <Brain className="w-8 h-8 text-white" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
               All Clear!
