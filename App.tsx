@@ -329,7 +329,7 @@ const StatCard: React.FC<{
         </div>
         {onClick && <ArrowRight size={16} className="text-slate-400 dark:text-slate-300 -rotate-45 group-hover:rotate-0 group-hover:text-blue-500 transition-all duration-300" />}
     </div>
-    <div className={`text-3xl font-bold tracking-tight mb-1 break-words ${colorClass}`}>{value}</div>
+    <div className={`text-2xl font-bold tracking-tight mb-1 break-words ${colorClass}`}>{value}</div>
     <div className="flex justify-between items-end min-w-0">
         <label className="text-base font-semibold text-slate-600 dark:text-slate-300 truncate">{label}</label>
     </div>
