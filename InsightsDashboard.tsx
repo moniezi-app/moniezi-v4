@@ -43,7 +43,6 @@ export default function InsightsDashboard({
 }: Props) {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  // Load dismissed ids (persisted)
   useEffect(() => {
     setDismissed(new Set(getDismissedInsightIds()));
   }, []);
@@ -67,9 +66,8 @@ export default function InsightsDashboard({
   };
 
   return (
-    // IMPORTANT: This provides scroll INSIDE the Insights modal.
     <div className="h-[90vh] max-h-[90vh] flex flex-col">
-      {/* Header (fixed) */}
+      {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-baseline gap-3">
           <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -114,9 +112,7 @@ export default function InsightsDashboard({
             {activeInsights.map((insight) => (
               <div
                 key={insight.id}
-                className={`rounded-xl border p-4 ${severityClasses(
-                  insight.severity
-                )}`}
+                className={`rounded-xl border p-4 ${severityClasses(insight.severity)}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
@@ -128,7 +124,6 @@ export default function InsightsDashboard({
                       <div className="mt-1 text-sm opacity-90">
                         {insight.message}
                       </div>
-
                       {insight.detail ? (
                         <div className="mt-2 text-sm opacity-80">
                           {insight.detail}
@@ -150,7 +145,6 @@ export default function InsightsDashboard({
           </div>
         )}
 
-        {/* extra bottom padding so last card isn't flush */}
         <div className="h-4" />
       </div>
     </div>
