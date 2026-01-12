@@ -371,28 +371,30 @@ export default function InsightsDashboard({
                       <SeverityIcon severity={insight.severity} />
                     </div>
 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
+                    {/* Content - Added max-width constraint */}
+                    <div className="flex-1 min-w-0 max-w-full overflow-hidden">
                       {/* Title Row */}
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
-                        <h3 className="font-semibold text-sm sm:text-base leading-snug pr-2">
-                          {insight.title}
-                        </h3>
-                        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 flex-wrap">
-                          {/* Category Badge */}
-                          <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-white/60 dark:bg-slate-950/30">
-                            {getCategoryIcon(insight.category)}
-                            <span className="capitalize hidden xs:inline">{insight.category}</span>
-                          </span>
-                          {/* Priority Badge */}
-                          <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-white/60 dark:bg-slate-950/30">
-                            {priorityLabel(insight.priority)}
-                          </span>
+                      <div className="flex flex-col gap-2 mb-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-sm sm:text-base leading-snug flex-1 min-w-0">
+                            {insight.title}
+                          </h3>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {/* Category Badge */}
+                            <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-white/60 dark:bg-slate-950/30 whitespace-nowrap">
+                              {getCategoryIcon(insight.category)}
+                              <span className="capitalize hidden sm:inline">{insight.category}</span>
+                            </span>
+                            {/* Priority Badge */}
+                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-white/60 dark:bg-slate-950/30 whitespace-nowrap">
+                              {priorityLabel(insight.priority)}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
                       {/* Message */}
-                      <p className="text-xs sm:text-sm leading-relaxed opacity-90 mb-2">
+                      <p className="text-xs sm:text-sm leading-relaxed opacity-90 mb-2 break-words">
                         {insight.message}
                       </p>
 
@@ -401,7 +403,7 @@ export default function InsightsDashboard({
                         <div className="mt-2">
                           {isExpanded && (
                             <div className="bg-white/60 dark:bg-slate-950/30 rounded-md sm:rounded-lg p-2.5 sm:p-3 border border-current/10 mb-2">
-                              <p className="text-xs sm:text-sm leading-relaxed">{insight.detail}</p>
+                              <p className="text-xs sm:text-sm leading-relaxed break-words">{insight.detail}</p>
                             </div>
                           )}
                           <button
@@ -423,10 +425,10 @@ export default function InsightsDashboard({
                         </div>
                       )}
 
-                      {/* Actionable Badge */}
+                      {/* Actionable Badge - Now properly constrained */}
                       {insight.actionable && (
                         <div className="mt-2 sm:mt-3">
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/70 dark:bg-slate-950/30 text-[10px] sm:text-xs font-medium border border-current/20">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/70 dark:bg-slate-950/30 text-[10px] sm:text-xs font-medium border border-current/20 whitespace-nowrap">
                             <Target className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             Action Required
                           </span>
@@ -434,10 +436,10 @@ export default function InsightsDashboard({
                       )}
                     </div>
 
-                    {/* Dismiss Button */}
+                    {/* Dismiss Button - Absolutely positioned to stay in place */}
                     <button
                       onClick={() => dismiss(insight.id)}
-                      className="shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md sm:rounded-lg border border-slate-200/70 dark:border-slate-800/70 bg-white/70 dark:bg-slate-950/10 hover:bg-white dark:hover:bg-slate-950/20 transition-colors"
+                      className="shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md sm:rounded-lg border border-slate-200/70 dark:border-slate-800/70 bg-white/70 dark:bg-slate-950/10 hover:bg-white dark:hover:bg-slate-950/20 transition-colors self-start"
                       title="Dismiss this insight"
                     >
                       Dismiss
