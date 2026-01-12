@@ -13,7 +13,7 @@ import {
   ShoppingCart,
   Bell,
   Sparkles,
-  Brain,
+  BrainCircuit,
   ChevronDown,
   ChevronUp,
   ChevronRight,
@@ -175,23 +175,23 @@ export default function InsightsDashboard({
         {/* Section Header - Collapsible */}
         <button
           onClick={() => toggleCategory(severity)}
-          className="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+          className="w-full px-6 py-6 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
         >
           <div className="flex items-center gap-4">
-            <div className={`p-2.5 rounded-xl ${colors.bg}`}>
+            <div className={`p-3 rounded-xl ${colors.bg}`}>
               <Icon className={`w-5 h-5 ${colors.icon}`} />
             </div>
             <div className="text-left">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                 {label.title}
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                 {label.count} {label.count === 1 ? 'insight' : 'insights'}
               </p>
             </div>
           </div>
           <ChevronDown
-            className={`w-5 h-5 text-slate-400 transition-transform ${
+            className={`w-6 h-6 text-slate-400 transition-transform ${
               isExpanded ? "rotate-180" : ""
             }`}
           />
@@ -209,22 +209,22 @@ export default function InsightsDashboard({
                   className={`${index !== 0 ? 'border-t border-slate-200 dark:border-slate-800' : ''}`}
                 >
                   {/* Insight Header */}
-                  <div className="px-6 py-5 hover:bg-white dark:hover:bg-slate-900/30 transition-colors">
-                    <div className="flex items-start gap-4">
+                  <div className="px-6 py-8 hover:bg-white dark:hover:bg-slate-900/30 transition-colors">
+                    <div className="flex items-start gap-5">
                       {/* Category Icon */}
-                      <div className={`flex-shrink-0 p-2 rounded-lg ${colors.bg}`}>
+                      <div className={`flex-shrink-0 p-3 rounded-lg ${colors.bg}`}>
                         {getCategoryIcon(insight.category)}
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         {/* Title & Action Badge */}
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <h4 className="text-base font-bold text-slate-900 dark:text-white leading-snug">
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                          <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug">
                             {insight.title}
                           </h4>
                           {insight.actionable && (
-                            <span className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold">
+                            <span className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold">
                               <Target className="w-3 h-3" />
                               Action
                             </span>
@@ -232,13 +232,13 @@ export default function InsightsDashboard({
                         </div>
 
                         {/* Message */}
-                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
+                        <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed mb-5">
                           {insight.message}
                         </p>
 
                         {/* Category Badge */}
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold capitalize">
+                        <div className="flex items-center gap-2 mb-5">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold capitalize">
                             {insight.category}
                           </span>
                         </div>
@@ -247,15 +247,15 @@ export default function InsightsDashboard({
                         {insight.detail && (
                           <>
                             {isDetailExpanded && (
-                              <div className="mb-3 p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                              <div className="mb-5 p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">
                                   {insight.detail}
                                 </p>
                               </div>
                             )}
                             <button
                               onClick={() => toggleInsightDetail(insight.id)}
-                              className="inline-flex items-center gap-1.5 text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+                              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
                             >
                               {isDetailExpanded ? (
                                 <>
@@ -276,7 +276,7 @@ export default function InsightsDashboard({
                       {/* Dismiss Button */}
                       <button
                         onClick={() => dismiss(insight.id)}
-                        className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors"
+                        className="flex-shrink-0 px-4 py-2.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold transition-colors"
                       >
                         Dismiss
                       </button>
@@ -318,7 +318,7 @@ export default function InsightsDashboard({
         <div className="pr-24">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-              <Brain className="w-5 h-5" />
+              <BrainCircuit className="w-5 h-5" strokeWidth={1.2} />
             </div>
             <div>
               <h2 className="text-xl font-bold uppercase tracking-wide">SMART INSIGHTS</h2>
@@ -358,7 +358,7 @@ export default function InsightsDashboard({
         {stats.active === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-6">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center mb-4 shadow-lg">
-              <Brain className="w-8 h-8 text-white" />
+              <BrainCircuit className="w-8 h-8 text-white" strokeWidth={1.2} />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
               All Clear!
@@ -375,8 +375,8 @@ export default function InsightsDashboard({
           </>
         )}
         
-        {/* Bottom Padding */}
-        <div className="h-8" />
+        {/* Bottom Padding - Generous space to prevent cutoff */}
+        <div className="h-32" />
       </div>
     </div>
   );
