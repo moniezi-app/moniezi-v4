@@ -1,308 +1,197 @@
-import { Invoice, TaxPayment, Transaction, UserSettings } from '../types';
+import type { Transaction, Invoice, TaxPayment, UserSettings } from "../types";
 
-export type InsightType = 'alert' | 'warning' | 'info' | 'positive';
+export type InsightSeverity = "low" | "medium" | "high";
 
-export interface Insight {
-  id: string;                 // deterministic across runs
-  type: InsightType;          // drives color + icon
-  category: 'spending' | 'cashflow' | 'invoices' | 'tax' | 'patterns';
+export type Insight = {
+  id: string;
+  severity: InsightSeverity;
   title: string;
   message: string;
-  recommendation?: string;
-  priority: number;           // 1..10
-}
+  detail?: string;
+};
 
-const DISMISSED_KEY = 'moniezi_v4.dismissedInsights.v1';
+const DISMISSED_KEY = "moniezi_insights_dismissed_v1";
 
 export function getDismissedInsightIds(): string[] {
   try {
     const raw = localStorage.getItem(DISMISSED_KEY);
     if (!raw) return [];
     const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.filter(x => typeof x === 'string') : [];
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
   } catch {
     return [];
   }
 }
 
-export function setDismissedInsightIds(ids: string[]): void {
-  try {
-    const uniq = Array.from(new Set(ids.filter(x => typeof x === 'string')));
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify(uniq));
-  } catch {
-    // ignore
-  }
+export function dismissInsightId(id: string) {
+  const curr = new Set(getDismissedInsightIds());
+  curr.add(id);
+  localStorage.setItem(DISMISSED_KEY, JSON.stringify(Array.from(curr)));
 }
 
-function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+export function clearDismissedInsights() {
+  localStorage.removeItem(DISMISSED_KEY);
 }
 
-function startOfDay(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+function parseDate(d: string): number {
+  // expects YYYY-MM-DD
+  const t = Date.parse(d);
+  return Number.isFinite(t) ? t : 0;
 }
 
-function parseDate(dateStr: string): Date | null {
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? null : d;
+function sum(arr: number[]) {
+  return arr.reduce((a, b) => a + b, 0);
 }
 
-function sumTx(transactions: Transaction[], type: 'income' | 'expense'): number {
-  return transactions
-    .filter(t => t.type === type)
-    .reduce((s, t) => s + Math.abs(Number(t.amount) || 0), 0);
+function lastNDaysTransactions(transactions: Transaction[], days: number) {
+  const now = Date.now();
+  const cutoff = now - days * 24 * 60 * 60 * 1000;
+  return transactions.filter((t) => parseDate(t.date) >= cutoff);
 }
 
-function txInLastDays(transactions: Transaction[], days: number): Transaction[] {
-  const cutoff = startOfDay(new Date());
-  cutoff.setDate(cutoff.getDate() - days);
-  return transactions.filter(t => {
-    const d = parseDate(t.date);
-    return d ? d >= cutoff : false;
-  });
-}
-
-function txBetweenDaysAgo(transactions: Transaction[], startDaysAgo: number, endDaysAgo: number): Transaction[] {
-  // range: [today - startDaysAgo, today - endDaysAgo)
-  const end = startOfDay(new Date());
-  end.setDate(end.getDate() - endDaysAgo);
-  const start = startOfDay(new Date());
-  start.setDate(start.getDate() - startDaysAgo);
-
-  return transactions.filter(t => {
-    const d = parseDate(t.date);
-    return d ? (d >= start && d < end) : false;
-  });
-}
-
-function formatCurrency(amount: number, currencySymbol: string = '$'): string {
-  const n = Number(amount);
-  if (!isFinite(n)) return `${currencySymbol}0.00`;
-  // Keep it simple and consistent with the rest of Moniezi formatting
-  return `${currencySymbol}${n.toFixed(2)}`;
-}
-
-export function generateInsights(args: {
+export function generateInsights(input: {
   transactions: Transaction[];
   invoices: Invoice[];
   taxPayments: TaxPayment[];
   settings: UserSettings;
 }): Insight[] {
-  const { transactions, invoices, taxPayments, settings } = args;
-  const currencySymbol = settings?.currencySymbol || '$';
+  const { transactions, invoices, taxPayments } = input;
+
   const insights: Insight[] = [];
-  const today = startOfDay(new Date());
-  const monthKey = today.toISOString().slice(0, 7);
 
-  // Guard: if no data, return empty
-  if (!transactions || transactions.length === 0) return [];
+  // 1) Cashflow basic
+  const income = sum(transactions.filter((t) => t.type === "income").map((t) => t.amount));
+  const expenses = sum(transactions.filter((t) => t.type === "expense").map((t) => t.amount));
+  const net = income - expenses;
 
-  // 1) Spending change (last 30 vs previous 30)
-  {
-    const last30 = txInLastDays(transactions, 30);
-    const prev30 = txBetweenDaysAgo(transactions, 60, 30);
+  if (transactions.length >= 5) {
+    if (net < 0) {
+      insights.push({
+        id: "cashflow_negative",
+        severity: "high",
+        title: "Negative cash flow",
+        message: `You’re spending more than you earn (${formatMoney(net)} net).`,
+        detail: "Consider reducing your biggest expense category or increasing income inflows.",
+      });
+    } else if (net < income * 0.1) {
+      insights.push({
+        id: "cashflow_low_savings",
+        severity: "medium",
+        title: "Low savings rate",
+        message: `Net profit is only about ${Math.round((net / Math.max(income, 1)) * 100)}% of income.`,
+        detail: "Aim for 15–25% if possible, depending on your business.",
+      });
+    } else {
+      insights.push({
+        id: "cashflow_healthy",
+        severity: "low",
+        title: "Healthy cash flow",
+        message: `You’re net positive by ${formatMoney(net)}.`,
+      });
+    }
+  }
 
-    const spendLast30 = sumTx(last30, 'expense');
-    const spendPrev30 = sumTx(prev30, 'expense');
+  // 2) Spending trend: last 30 vs previous 30
+  if (transactions.length >= 10) {
+    const last30 = lastNDaysTransactions(transactions, 30);
+    const last60 = lastNDaysTransactions(transactions, 60);
+    const prev30 = last60.filter((t) => !last30.includes(t));
 
-    if (spendPrev30 > 0 && spendLast30 > 0) {
-      const changePct = ((spendLast30 - spendPrev30) / spendPrev30) * 100;
-      if (changePct >= 20) {
+    const expLast = sum(last30.filter((t) => t.type === "expense").map((t) => t.amount));
+    const expPrev = sum(prev30.filter((t) => t.type === "expense").map((t) => t.amount));
+
+    if (expPrev > 0) {
+      const change = (expLast - expPrev) / expPrev;
+      if (change > 0.25) {
         insights.push({
-          id: `spending_increase_${monthKey}`,
-          type: 'warning',
-          category: 'spending',
-          title: 'Spending Increased vs Last Month',
-          message: `Your last 30 days spending is up ${changePct.toFixed(1)}% (${formatCurrency(spendLast30, currencySymbol)} vs ${formatCurrency(spendPrev30, currencySymbol)}).`,
-          recommendation: 'Review your biggest expense categories and cut one non-essential item this week.',
-          priority: 8,
+          id: "spend_up_30",
+          severity: "medium",
+          title: "Expenses rising",
+          message: `Expenses are up ~${Math.round(change * 100)}% vs the previous 30 days.`,
+          detail: "Check if any category or vendor spiked unexpectedly.",
         });
-      } else if (changePct <= -15) {
+      } else if (change < -0.25) {
         insights.push({
-          id: `spending_decrease_${monthKey}`,
-          type: 'positive',
-          category: 'spending',
-          title: 'Nice Work Reducing Spending',
-          message: `Your spending dropped ${Math.abs(changePct).toFixed(1)}% compared to the previous 30 days.`,
-          recommendation: 'Consider moving part of the savings toward taxes or a financial buffer.',
-          priority: 6,
+          id: "spend_down_30",
+          severity: "low",
+          title: "Expenses improving",
+          message: `Expenses are down ~${Math.round(Math.abs(change) * 100)}% vs the previous 30 days.`,
         });
       }
     }
   }
 
-  // 2) Cashflow (last 30 days)
-  {
-    const last30 = txInLastDays(transactions, 30);
-    const income = sumTx(last30, 'income');
-    const expenses = sumTx(last30, 'expense');
-    const net = income - expenses;
-
-    // Only show if there's meaningful activity
-    if (income > 0 || expenses > 0) {
-      const ratio = income > 0 ? (net / income) * 100 : -100;
-      if (net < 0) {
-        insights.push({
-          id: `cashflow_negative_${monthKey}`,
-          type: 'alert',
-          category: 'cashflow',
-          title: 'Negative Cash Flow',
-          message: `You spent ${formatCurrency(Math.abs(net), currencySymbol)} more than you earned in the last 30 days.`,
-          recommendation: 'Reduce expenses for 7 days and add at least one new income entry or invoice.',
-          priority: 10,
-        });
-      } else if (income > 0 && ratio < 10) {
-        insights.push({
-          id: `cashflow_low_savings_${monthKey}`,
-          type: 'warning',
-          category: 'cashflow',
-          title: 'Low Savings Rate',
-          message: `You saved about ${ratio.toFixed(1)}% of income in the last 30 days.`,
-          recommendation: 'Aim for 15–20%. Pick one category to reduce by 10% this month.',
-          priority: 8,
-        });
-      } else if (income > 0 && ratio >= 20) {
-        insights.push({
-          id: `cashflow_good_${monthKey}`,
-          type: 'positive',
-          category: 'cashflow',
-          title: 'Healthy Cash Flow',
-          message: `You saved about ${ratio.toFixed(1)}% of income in the last 30 days (${formatCurrency(net, currencySymbol)}).`,
-          recommendation: 'Nice. Consider allocating a fixed % to taxes and a buffer.',
-          priority: 6,
-        });
-      }
-    }
-  }
-
-  // 3) Pattern: top expense category concentration (last 30 days)
-  {
-    const last30 = txInLastDays(transactions, 30).filter(t => t.type === 'expense');
-    const total = last30.reduce((s, t) => s + Math.abs(Number(t.amount) || 0), 0);
-    if (total > 0) {
-      const byCat = new Map<string, number>();
-      for (const t of last30) {
-        const cat = (t.category || 'Uncategorized').trim() || 'Uncategorized';
-        byCat.set(cat, (byCat.get(cat) || 0) + Math.abs(Number(t.amount) || 0));
-      }
-      const top = Array.from(byCat.entries()).sort((a, b) => b[1] - a[1])[0];
-      if (top) {
-        const pct = (top[1] / total) * 100;
-        if (pct >= 45) {
-          insights.push({
-            id: `pattern_top_category_${monthKey}_${top[0].toLowerCase().replace(/\s+/g, '_')}`,
-            type: 'info',
-            category: 'patterns',
-            title: `Top Spend Category: ${top[0]}`,
-            message: `${pct.toFixed(1)}% of your last 30 days spending is in "${top[0]}".`,
-            recommendation: 'If this is essential, set a budget. If it’s optional, cap it for the next 2 weeks.',
-            priority: 5,
-          });
-        }
-      }
-    }
-  }
-
-  // 4) Overdue invoices
-  {
-    const overdue = (invoices || []).filter(inv => {
-      if (!inv || inv.status !== 'unpaid') return false;
-      const due = parseDate(inv.due);
-      return due ? startOfDay(due) < today : false;
+  // 3) Overdue invoices
+  const unpaid = invoices.filter((inv) => inv.status === "unpaid");
+  if (unpaid.length > 0) {
+    const overdue = unpaid.filter((inv) => {
+      const due = (inv as any).dueDate || (inv as any).date; // app variants
+      return parseDate(String(due)) > 0 && parseDate(String(due)) < Date.now() - 1 * 24 * 60 * 60 * 1000;
     });
 
     if (overdue.length > 0) {
-      // earliest due date for stable id
-      const earliest = overdue
-        .map(inv => parseDate(inv.due))
-        .filter((d): d is Date => !!d)
-        .sort((a, b) => a.getTime() - b.getTime())[0];
-
-      const totalDue = overdue.reduce((s, inv) => s + Math.abs(Number(inv.amount) || 0), 0);
-
       insights.push({
-        id: `invoice_overdue_${earliest ? isoDate(earliest) : monthKey}`,
-        type: 'alert',
-        category: 'invoices',
-        title: `Overdue Invoices (${overdue.length})`,
-        message: `You have ${overdue.length} unpaid invoice(s) past due totaling about ${formatCurrency(totalDue, currencySymbol)}.`,
-        recommendation: 'Send a friendly reminder today. Consider adding late terms for future invoices.',
-        priority: 9,
+        id: "invoices_overdue",
+        severity: "high",
+        title: "Overdue invoices",
+        message: `${overdue.length} unpaid invoice(s) look overdue.`,
+        detail: "Follow up with clients and consider adding late fees or reminders.",
       });
     } else {
-      const unpaid = (invoices || []).filter(inv => inv?.status === 'unpaid');
-      if (unpaid.length >= 5) {
+      insights.push({
+        id: "invoices_unpaid",
+        severity: "medium",
+        title: "Unpaid invoices",
+        message: `${unpaid.length} invoice(s) are still unpaid.`,
+      });
+    }
+  }
+
+  // 4) Category concentration (top expense category too dominant)
+  const expenseTx = transactions.filter((t) => t.type === "expense");
+  if (expenseTx.length >= 8) {
+    const byCat = new Map<string, number>();
+    for (const t of expenseTx) {
+      byCat.set(t.category || "Uncategorized", (byCat.get(t.category || "Uncategorized") || 0) + t.amount);
+    }
+    const sorted = Array.from(byCat.entries()).sort((a, b) => b[1] - a[1]);
+    const top = sorted[0];
+    const totalExp = sum(expenseTx.map((t) => t.amount));
+    if (top && totalExp > 0) {
+      const share = top[1] / totalExp;
+      if (share > 0.45) {
         insights.push({
-          id: `invoice_unpaid_many_${monthKey}`,
-          type: 'warning',
-          category: 'invoices',
-          title: 'Many Unpaid Invoices',
-          message: `You currently have ${unpaid.length} unpaid invoices.`,
-          recommendation: 'Batch-send reminders and mark paid invoices in the app to keep totals accurate.',
-          priority: 7,
+          id: "category_concentration",
+          severity: "medium",
+          title: "One category dominates spending",
+          message: `"${top[0]}" is about ${Math.round(share * 100)}% of your expenses.`,
+          detail: "If this is expected (rent, inventory), ignore. Otherwise, review it.",
         });
       }
     }
   }
 
-  // 5) Tax funding reminder (simple YTD estimate)
-  {
-    const year = today.getFullYear();
-    const ytdIncome = (transactions || [])
-      .filter(t => t.type === 'income' && t.date?.startsWith(String(year)))
-      .reduce((s, t) => s + Math.abs(Number(t.amount) || 0), 0);
-
-    const ytdTaxPaid = (taxPayments || [])
-      .filter(p => p.date?.startsWith(String(year)))
-      .reduce((s, p) => s + Math.abs(Number(p.amount) || 0), 0);
-
-    const totalRate = (Number(settings?.taxRate) || 0) + (Number(settings?.stateTaxRate) || 0);
-    const estTax = ytdIncome * (totalRate / 100);
-
-    if (ytdIncome > 0 && totalRate > 0) {
-      const fundedPct = estTax > 0 ? (ytdTaxPaid / estTax) * 100 : 0;
-      // Only surface if we have some income and are underfunded
-      if (fundedPct < 60 && today.getMonth() >= 2) { // March+ reduces noise early Jan/Feb
-        insights.push({
-          id: `tax_underfunded_${year}_${today.getMonth()+1}`,
-          type: 'warning',
-          category: 'tax',
-          title: 'Tax Payments May Be Behind',
-          message: `Estimated tax on YTD income is about ${formatCurrency(estTax, currencySymbol)}. You've logged ${formatCurrency(ytdTaxPaid, currencySymbol)} (~${fundedPct.toFixed(0)}%).`,
-          recommendation: 'Consider setting aside a fixed % of each income transaction and logging estimated payments.',
-          priority: 7,
-        });
-      } else if (fundedPct >= 80 && ytdTaxPaid > 0) {
-        insights.push({
-          id: `tax_ontrack_${year}`,
-          type: 'positive',
-          category: 'tax',
-          title: 'Tax Funding Looks On Track',
-          message: `You’ve logged about ${fundedPct.toFixed(0)}% of your estimated YTD tax.`,
-          recommendation: 'Keep the habit—consistency beats surprises.',
-          priority: 5,
-        });
-      }
+  // 5) Simple tax underfunding signal (very approximate)
+  if (income > 0) {
+    const paidTax = sum(taxPayments.map((p) => p.amount));
+    // crude assumption: set aside 20% of income if user hasn't configured anything else
+    const target = income * 0.2;
+    if (paidTax < target * 0.5) {
+      insights.push({
+        id: "tax_underfunded",
+        severity: "medium",
+        title: "Tax payments may be low",
+        message: `Tax payments (${formatMoney(paidTax)}) look low compared to income.`,
+        detail: "Consider setting aside a consistent percentage per income payment.",
+      });
     }
   }
 
-  // Sort + return
-  return insights.sort((a, b) => b.priority - a.priority);
+  return insights;
 }
 
-export function getInsightCount(args: {
-  transactions: Transaction[];
-  invoices: Invoice[];
-  taxPayments: TaxPayment[];
-  settings: UserSettings;
-}): number {
-  try {
-    const all = generateInsights(args);
-    const dismissed = new Set(getDismissedInsightIds());
-    return all.filter(i => !dismissed.has(i.id)).length;
-  } catch {
-    return 0;
-  }
+function formatMoney(n: number) {
+  const sign = n < 0 ? "-" : "";
+  const val = Math.abs(n);
+  return `${sign}$${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
