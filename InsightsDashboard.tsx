@@ -178,42 +178,46 @@ export default function InsightsDashboard({
 
   return (
     <div className="h-[90vh] max-h-[90vh] flex flex-col bg-white dark:bg-slate-900">
-      {/* Header - Responsive */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-5 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-800">
-        <div className="flex items-baseline gap-2 sm:gap-3">
-          <h2 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-slate-100">
-            Smart Insights
-          </h2>
-          <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            {stats.active} active
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 sm:gap-2">
+      {/* Header - with buttons in top-right corner */}
+      <div className="relative px-3 sm:px-5 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-800">
+        {/* Buttons - Absolute positioned in top-right */}
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-5 flex items-center gap-1.5 sm:gap-2 z-10">
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-all"
+            className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-all"
             title="Refresh insights"
           >
-            <RefreshCcw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
-
-          <button
-            onClick={resetDismissed}
-            className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
-            title="Reset dismissed insights"
-          >
-            Reset
+            <RefreshCcw className={`w-4 h-4 sm:w-4.5 sm:h-4.5 ${isRefreshing ? "animate-spin" : ""}`} />
           </button>
 
           <button
             onClick={onClose}
-            className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
             title="Close"
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+        </div>
+
+        {/* Title and subtitle - with padding for buttons */}
+        <div className="pr-20 sm:pr-24">
+          <div className="flex items-baseline gap-2 sm:gap-3 mb-2">
+            <h2 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-slate-100">
+              Smart Insights
+            </h2>
+            <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              {stats.active} active
+            </span>
+          </div>
+          
+          {/* Reset button - below title on mobile, inline on desktop */}
+          <button
+            onClick={resetDismissed}
+            className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium transition-colors"
+            title="Reset dismissed insights"
+          >
+            Reset Dismissed
           </button>
         </div>
       </div>
