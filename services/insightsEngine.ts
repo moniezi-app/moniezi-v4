@@ -217,3 +217,23 @@ export function generateInsights(input: {
 
   return insights;
 }
+export function getInsightCount(input: {
+  transactions: Transaction[];
+  invoices: Invoice[];
+  taxPayments: TaxPayment[];
+  settings: UserSettings;
+}): number {
+  const insights = generateInsights(input);
+  const dismissed = new Set(getDismissedInsightIds());
+  return insights.filter((i) => !dismissed.has(i.id)).length;
+}
+export function getInsightCount(input: {
+  transactions: Transaction[];
+  invoices: Invoice[];
+  taxPayments: TaxPayment[];
+  settings: UserSettings;
+}): number {
+  const insights = generateInsights(input);
+  const dismissed = new Set(getDismissedInsightIds());
+  return insights.filter((i) => !dismissed.has(i.id)).length;
+}
