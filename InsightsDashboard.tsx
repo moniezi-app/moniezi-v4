@@ -41,32 +41,32 @@ type Props = {
 function getCategoryIcon(category: InsightCategory) {
   switch (category) {
     case "cashflow":
-      return <Activity className="w-4 h-4" />;
+      return <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
     case "spending":
-      return <ShoppingCart className="w-4 h-4" />;
+      return <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
     case "income":
-      return <TrendingUp className="w-4 h-4" />;
+      return <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
     case "budget":
-      return <Target className="w-4 h-4" />;
+      return <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
     case "patterns":
-      return <Calendar className="w-4 h-4" />;
+      return <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
     case "subscriptions":
-      return <Bell className="w-4 h-4" />;
+      return <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
     case "forecast":
-      return <Sparkles className="w-4 h-4" />;
+      return <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
     case "savings":
-      return <DollarSign className="w-4 h-4" />;
+      return <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
     case "distribution":
-      return <PieChart className="w-4 h-4" />;
+      return <PieChart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
     default:
-      return <Info className="w-4 h-4" />;
+      return <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
   }
 }
 
 function SeverityIcon({ severity }: { severity: Insight["severity"] }) {
-  if (severity === "high") return <AlertTriangle className="w-5 h-5" />;
-  if (severity === "medium") return <Info className="w-5 h-5" />;
-  return <CheckCircle2 className="w-5 h-5" />;
+  if (severity === "high") return <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />;
+  if (severity === "medium") return <Info className="w-4 h-4 sm:w-5 sm:h-5" />;
+  return <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />;
 }
 
 function severityClasses(severity: Insight["severity"]) {
@@ -77,18 +77,6 @@ function severityClasses(severity: Insight["severity"]) {
       return "border-amber-200 dark:border-amber-900/40 bg-amber-50/70 dark:bg-amber-900/15 text-amber-800 dark:text-amber-200";
     default:
       return "border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/70 dark:bg-emerald-900/15 text-emerald-800 dark:text-emerald-200";
-  }
-}
-
-function severityBadge(severity: Insight["severity"]) {
-  const baseClasses = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium";
-  switch (severity) {
-    case "high":
-      return `${baseClasses} bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300`;
-    case "medium":
-      return `${baseClasses} bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300`;
-    default:
-      return `${baseClasses} bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300`;
   }
 }
 
@@ -112,6 +100,7 @@ export default function InsightsDashboard({
   const [sortBy, setSortBy] = useState<"priority" | "severity">("priority");
   const [expandedInsights, setExpandedInsights] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     setDismissed(new Set(getDismissedInsightIds()));
@@ -124,17 +113,14 @@ export default function InsightsDashboard({
   const filteredInsights = useMemo(() => {
     let filtered = allInsights.filter((i) => !dismissed.has(i.id));
 
-    // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter((i) => i.category === selectedCategory);
     }
 
-    // Filter by severity
     if (selectedSeverity !== "all") {
       filtered = filtered.filter((i) => i.severity === selectedSeverity);
     }
 
-    // Sort
     if (sortBy === "priority") {
       filtered.sort((a, b) => b.priority - a.priority);
     } else {
@@ -145,13 +131,11 @@ export default function InsightsDashboard({
     return filtered;
   }, [allInsights, dismissed, selectedCategory, selectedSeverity, sortBy]);
 
-  // Get unique categories from insights
   const availableCategories = useMemo(() => {
     const cats = new Set(allInsights.map((i) => i.category));
     return Array.from(cats).sort();
   }, [allInsights]);
 
-  // Statistics
   const stats = useMemo(() => {
     const active = allInsights.filter((i) => !dismissed.has(i.id));
     return {
@@ -172,7 +156,6 @@ export default function InsightsDashboard({
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    // Force re-render
     setTimeout(() => {
       setIsRefreshing(false);
     }, 500);
@@ -195,72 +178,72 @@ export default function InsightsDashboard({
 
   return (
     <div className="h-[90vh] max-h-[90vh] flex flex-col bg-white dark:bg-slate-900">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800">
-        <div className="flex items-baseline gap-3">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+      {/* Header - Responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-5 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-baseline gap-2 sm:gap-3">
+          <h2 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-slate-100">
             Smart Insights
           </h2>
-          <span className="text-sm text-slate-500 dark:text-slate-400">
+          <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             {stats.active} active
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-all"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-all"
             title="Refresh insights"
           >
-            <RefreshCcw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
-            Refresh
+            <RefreshCcw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
 
           <button
             onClick={resetDismissed}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
             title="Reset dismissed insights"
           >
-            Reset Dismissed
+            Reset
           </button>
 
           <button
             onClick={onClose}
-            className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
             title="Close"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
       </div>
 
-      {/* Stats Bar */}
-      <div className="px-5 py-3 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800">
-        <div className="flex items-center gap-6 text-sm">
-          <div className="flex items-center gap-2">
+      {/* Stats Bar - Responsive with horizontal scroll on mobile */}
+      <div className="px-3 sm:px-5 py-2 sm:py-3 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
+        <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm min-w-max">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="text-slate-600 dark:text-slate-400">Total:</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.total}</span>
           </div>
-          <div className="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-red-500"></span>
+          <div className="h-3 sm:h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-500"></span>
             <span className="text-slate-600 dark:text-slate-400">High:</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.high}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500"></span>
             <span className="text-slate-600 dark:text-slate-400">Medium:</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.medium}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500"></span>
             <span className="text-slate-600 dark:text-slate-400">Low:</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.low}</span>
           </div>
-          <div className="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
-          <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-slate-500" />
+          <div className="h-3 sm:h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Target className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
             <span className="text-slate-600 dark:text-slate-400">Actionable:</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">
               {stats.actionable}
@@ -269,10 +252,29 @@ export default function InsightsDashboard({
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="px-5 py-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-        <div className="flex items-center gap-4 flex-wrap">
+      {/* Filters - Collapsible on mobile */}
+      <div className="px-3 sm:px-5 py-2 sm:py-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        {/* Mobile: Show/Hide Filters Button */}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="sm:hidden flex items-center justify-between w-full py-2 text-sm font-medium text-slate-700 dark:text-slate-300"
+        >
           <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+            <span>Filters</span>
+          </div>
+          <ChevronDown
+            className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {/* Filter Controls */}
+        <div
+          className={`${
+            showFilters ? "flex" : "hidden"
+          } sm:flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 mt-2 sm:mt-0`}
+        >
+          <div className="hidden sm:flex items-center gap-2">
             <Filter className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Filters:</span>
           </div>
@@ -281,7 +283,7 @@ export default function InsightsDashboard({
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value as any)}
-            className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400"
+            className="text-xs sm:text-sm px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 w-full sm:w-auto"
           >
             <option value="all">All Categories</option>
             {availableCategories.map((cat) => (
@@ -295,7 +297,7 @@ export default function InsightsDashboard({
           <select
             value={selectedSeverity}
             onChange={(e) => setSelectedSeverity(e.target.value as any)}
-            className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400"
+            className="text-xs sm:text-sm px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 w-full sm:w-auto"
           >
             <option value="all">All Severities</option>
             <option value="high">High</option>
@@ -307,7 +309,7 @@ export default function InsightsDashboard({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400"
+            className="text-xs sm:text-sm px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 w-full sm:w-auto"
           >
             <option value="priority">Sort by Priority</option>
             <option value="severity">Sort by Severity</option>
@@ -320,113 +322,122 @@ export default function InsightsDashboard({
                 setSelectedCategory("all");
                 setSelectedSeverity("all");
               }}
-              className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
+              className="text-xs sm:text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium py-2 sm:py-0"
             >
               Clear Filters
             </button>
           )}
+
+          {/* Mobile: Reset Dismissed */}
+          <button
+            onClick={resetDismissed}
+            className="sm:hidden text-xs text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 font-medium py-2"
+          >
+            Reset Dismissed Insights
+          </button>
         </div>
       </div>
 
       {/* Scrollable body */}
-      <div className="flex-1 overflow-y-auto px-5 py-4">
+      <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 sm:py-4">
         {filteredInsights.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-4">
-            <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-              <Sparkles className="w-8 h-8 text-slate-400 dark:text-slate-600" />
+          <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3 sm:mb-4">
+              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-slate-400 dark:text-slate-600" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2 text-center">
               No insights to display
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 text-center max-w-md">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 text-center max-w-md">
               {stats.active === 0
                 ? "All insights have been dismissed. Add more transactions or reset dismissed insights."
                 : "Try adjusting your filters to see more insights."}
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5 sm:space-y-3">
             {filteredInsights.map((insight) => {
               const isExpanded = expandedInsights.has(insight.id);
               return (
                 <div
                   key={insight.id}
-                  className={`rounded-xl border-2 p-4 transition-all ${severityClasses(
+                  className={`rounded-lg sm:rounded-xl border-2 p-3 sm:p-4 transition-all ${severityClasses(
                     insight.severity
                   )}`}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className="mt-0.5 opacity-90 flex-shrink-0">
-                        <SeverityIcon severity={insight.severity} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        {/* Title Row */}
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h3 className="font-semibold text-base leading-snug">
-                            {insight.title}
-                          </h3>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            {/* Category Badge */}
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-white/60 dark:bg-slate-950/30">
-                              {getCategoryIcon(insight.category)}
-                              <span className="capitalize">{insight.category}</span>
-                            </span>
-                            {/* Priority Badge */}
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white/60 dark:bg-slate-950/30">
-                              {priorityLabel(insight.priority)}
-                            </span>
-                          </div>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    {/* Icon */}
+                    <div className="mt-0.5 opacity-90 flex-shrink-0">
+                      <SeverityIcon severity={insight.severity} />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      {/* Title Row */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                        <h3 className="font-semibold text-sm sm:text-base leading-snug pr-2">
+                          {insight.title}
+                        </h3>
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 flex-wrap">
+                          {/* Category Badge */}
+                          <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-white/60 dark:bg-slate-950/30">
+                            {getCategoryIcon(insight.category)}
+                            <span className="capitalize hidden xs:inline">{insight.category}</span>
+                          </span>
+                          {/* Priority Badge */}
+                          <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-white/60 dark:bg-slate-950/30">
+                            {priorityLabel(insight.priority)}
+                          </span>
                         </div>
-
-                        {/* Message */}
-                        <p className="text-sm leading-relaxed opacity-90 mb-2">
-                          {insight.message}
-                        </p>
-
-                        {/* Detail (expandable) */}
-                        {insight.detail && (
-                          <div className="mt-2">
-                            {isExpanded ? (
-                              <div className="bg-white/60 dark:bg-slate-950/30 rounded-lg p-3 border border-current/10">
-                                <p className="text-sm leading-relaxed">{insight.detail}</p>
-                              </div>
-                            ) : null}
-                            <button
-                              onClick={() => toggleExpanded(insight.id)}
-                              className="inline-flex items-center gap-1 mt-2 text-sm font-medium hover:opacity-70 transition-opacity"
-                            >
-                              {isExpanded ? (
-                                <>
-                                  <ChevronUp className="w-4 h-4" />
-                                  Show less
-                                </>
-                              ) : (
-                                <>
-                                  <ChevronDown className="w-4 h-4" />
-                                  Show recommendation
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Actionable Badge */}
-                        {insight.actionable && (
-                          <div className="mt-3">
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/70 dark:bg-slate-950/30 text-xs font-medium border border-current/20">
-                              <Target className="w-3 h-3" />
-                              Action Required
-                            </span>
-                          </div>
-                        )}
                       </div>
+
+                      {/* Message */}
+                      <p className="text-xs sm:text-sm leading-relaxed opacity-90 mb-2">
+                        {insight.message}
+                      </p>
+
+                      {/* Detail (expandable) */}
+                      {insight.detail && (
+                        <div className="mt-2">
+                          {isExpanded && (
+                            <div className="bg-white/60 dark:bg-slate-950/30 rounded-md sm:rounded-lg p-2.5 sm:p-3 border border-current/10 mb-2">
+                              <p className="text-xs sm:text-sm leading-relaxed">{insight.detail}</p>
+                            </div>
+                          )}
+                          <button
+                            onClick={() => toggleExpanded(insight.id)}
+                            className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium hover:opacity-70 transition-opacity"
+                          >
+                            {isExpanded ? (
+                              <>
+                                <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                                Show less
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                                Show recommendation
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Actionable Badge */}
+                      {insight.actionable && (
+                        <div className="mt-2 sm:mt-3">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/70 dark:bg-slate-950/30 text-[10px] sm:text-xs font-medium border border-current/20">
+                            <Target className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                            Action Required
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Dismiss Button */}
                     <button
                       onClick={() => dismiss(insight.id)}
-                      className="shrink-0 px-3 py-2 text-sm font-medium rounded-lg border border-slate-200/70 dark:border-slate-800/70 bg-white/70 dark:bg-slate-950/10 hover:bg-white dark:hover:bg-slate-950/20 transition-colors"
+                      className="shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md sm:rounded-lg border border-slate-200/70 dark:border-slate-800/70 bg-white/70 dark:bg-slate-950/10 hover:bg-white dark:hover:bg-slate-950/20 transition-colors"
                       title="Dismiss this insight"
                     >
                       Dismiss
