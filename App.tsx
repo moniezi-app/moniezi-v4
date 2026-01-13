@@ -1692,7 +1692,7 @@ html:not(.dark) .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-col
                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center mb-3">
                         <TrendingUp size={24} strokeWidth={1.5} className="text-slate-700 dark:text-slate-300" />
                      </div>
-                     <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                     <div className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
                         {totals.income > 0 ? `${((totals.profit / totals.income) * 100).toFixed(1)}%` : "—"}
                      </div>
                      <div className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-1">Profit Margin</div>
@@ -1708,7 +1708,7 @@ html:not(.dark) .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-col
                            <FileText size={24} strokeWidth={1.5} className="text-slate-700 dark:text-slate-300" />
                         )}
                      </div>
-                     <div className={`text-3xl font-bold mb-1 ${totals.overdueAmount > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
+                     <div className={`text-2xl font-bold mb-1 ${totals.overdueAmount > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
                         {formatCurrency.format(totals.pendingAmount)}
                      </div>
                      <div className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-1">
