@@ -520,6 +520,8 @@ export default function App() {
   const [ledgerFilter, setLedgerFilter] = useState<'all' | 'income' | 'expense' | 'invoice'>('all');
   const [lastYearCalc, setLastYearCalc] = useState({ profit: '', tax: '' });
   const [selectedInvoiceForDoc, setSelectedInvoiceForDoc] = useState<Invoice | null>(null);
+  const [showPLPreview, setShowPLPreview] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [seedSuccess, setSeedSuccess] = useState(false);
@@ -2405,14 +2407,234 @@ html:not(.dark) .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-col
                         </div>
                     )}
                 </div>
-              <div className="bg-white dark:bg-slate-900 p-8 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xl">
-                <div className="flex items-center gap-3 mb-8"><BarChart3 size={24} strokeWidth={2} className="text-blue-600 dark:text-blue-400" /><h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight font-brand">Profit & Loss <span className="text-slate-500 dark:text-slate-300 text-sm normal-case tracking-normal ml-2">(Current Period)</span></h3></div>
+              {/* Enhanced Profit & Loss Statement */}
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl">
+                {/* Header with Actions */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <BarChart3 size={24} strokeWidth={2} className="text-blue-600 dark:text-blue-400" />
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight font-brand">
+                        Profit & Loss
+                      </h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                        {filterPeriod === 'month' ? referenceDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) :
+                         filterPeriod === 'quarter' ? `Q${Math.floor(referenceDate.getMonth() / 3) + 1} ${referenceDate.getFullYear()}` :
+                         filterPeriod === 'year' ? referenceDate.getFullYear().toString() : 'All Time'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowPLPreview(true)}
+                      className="px-3 sm:px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-semibold text-sm flex items-center gap-2 transition-colors"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span className="hidden sm:inline">Preview</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsGeneratingPDF(true);
+                        setTimeout(() => {
+                          setIsGeneratingPDF(false);
+                          showToast('PDF export requires jsPDF library. Install with: npm install jspdf jspdf-autotable', 'info');
+                        }, 1000);
+                      }}
+                      disabled={isGeneratingPDF}
+                      className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span className="hidden sm:inline">{isGeneratingPDF ? 'Generating...' : 'Export PDF'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Compact Summary */}
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center py-4 border-b border-slate-100 dark:border-slate-800"><span className="text-base font-bold text-slate-600 dark:text-slate-300">Revenue</span><span className="text-xl font-bold text-emerald-600">{formatCurrency.format(reportData.income)}</span></div>
-                  <div className="flex justify-between items-center py-4 border-b border-slate-100 dark:border-slate-800"><span className="text-base font-bold text-slate-600 dark:text-slate-300">Deductible Expenses</span><span className="text-xl font-bold text-red-600">{formatCurrency.format(reportData.expense)}</span></div>
-                  <div className="flex justify-between items-center pt-8"><span className="text-lg font-extrabold text-slate-950 dark:text-white">Net Profit</span><span className="text-3xl font-extrabold text-slate-950 dark:text-white font-brand">{formatCurrency.format(reportData.netProfit)}</span></div>
+                  <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-base font-bold text-slate-600 dark:text-slate-300">Revenue</span>
+                    <span className="text-xl font-bold text-emerald-600 tabular-nums">{formatCurrency.format(reportData.income)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-base font-bold text-slate-600 dark:text-slate-300">Operating Expenses</span>
+                    <span className="text-xl font-bold text-red-600 tabular-nums">{formatCurrency.format(reportData.expense)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-6">
+                    <span className="text-lg font-bold text-slate-900 dark:text-white">Net Profit</span>
+                    <div className="text-right">
+                      <div className={`text-3xl font-bold tabular-nums ${reportData.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {formatCurrency.format(reportData.netProfit)}
+                      </div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        {reportData.income > 0 ? `${((reportData.netProfit / reportData.income) * 100).toFixed(1)}% margin` : '—'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              {/* P&L Preview Modal */}
+              {showPLPreview && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">Profit & Loss Statement Preview</h3>
+                      <button onClick={() => setShowPLPreview(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* PDF Preview Content */}
+                    <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-slate-950">
+                      <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900 p-12 shadow-lg rounded-lg">
+                        {/* Header */}
+                        <div className="text-center mb-8 pb-6 border-b-2 border-slate-300 dark:border-slate-700">
+                          <Building size={32} className="mx-auto mb-3 text-blue-600" />
+                          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{settings.businessName}</h1>
+                          {settings.businessAddress && <p className="text-sm text-slate-600 dark:text-slate-400">{settings.businessAddress}</p>}
+                          <div className="mt-4">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white uppercase">Profit & Loss Statement</h2>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                              Period: {filterPeriod === 'month' ? referenceDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) :
+                                      filterPeriod === 'quarter' ? `Q${Math.floor(referenceDate.getMonth() / 3) + 1} ${referenceDate.getFullYear()}` :
+                                      filterPeriod === 'year' ? referenceDate.getFullYear().toString() : 'All Time'}
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                              Generated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Revenue Section */}
+                        <div className="mb-8">
+                          <div className="flex items-center gap-2 mb-4">
+                            <TrendingUp className="w-5 h-5 text-emerald-600" />
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white uppercase">Revenue</h3>
+                          </div>
+                          <div className="space-y-2 ml-7">
+                            {(() => {
+                              const incomeByCategory = filteredTransactions.filter(t => t.type === 'income').reduce((acc, t) => {
+                                acc[t.category] = (acc[t.category] || 0) + t.amount;
+                                return acc;
+                              }, {} as Record<string, number>);
+                              return Object.entries(incomeByCategory).map(([category, amount]) => (
+                                <div key={category} className="flex justify-between items-center py-2">
+                                  <span className="text-sm text-slate-700 dark:text-slate-300">{category}</span>
+                                  <span className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">{formatCurrency.format(amount)}</span>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                          <div className="flex justify-between items-center py-3 mt-2 border-t border-slate-300 dark:border-slate-700">
+                            <span className="font-bold text-slate-900 dark:text-white">Total Revenue</span>
+                            <span className="text-lg font-bold text-emerald-600 tabular-nums">{formatCurrency.format(reportData.income)}</span>
+                          </div>
+                        </div>
+
+                        {/* Expenses Section */}
+                        <div className="mb-8">
+                          <div className="flex items-center gap-2 mb-4">
+                            <TrendingDown className="w-5 h-5 text-red-600" />
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white uppercase">Operating Expenses</h3>
+                          </div>
+                          <div className="space-y-2 ml-7">
+                            {(() => {
+                              const expensesByCategory = filteredTransactions.filter(t => t.type === 'expense').reduce((acc, t) => {
+                                acc[t.category] = (acc[t.category] || 0) + t.amount;
+                                return acc;
+                              }, {} as Record<string, number>);
+                              return Object.entries(expensesByCategory).map(([category, amount]) => (
+                                <div key={category} className="flex justify-between items-center py-2">
+                                  <span className="text-sm text-slate-700 dark:text-slate-300">{category}</span>
+                                  <span className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">{formatCurrency.format(amount)}</span>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                          <div className="flex justify-between items-center py-3 mt-2 border-t border-slate-300 dark:border-slate-700">
+                            <span className="font-bold text-slate-900 dark:text-white">Total Expenses</span>
+                            <span className="text-lg font-bold text-red-600 tabular-nums">{formatCurrency.format(reportData.expense)}</span>
+                          </div>
+                        </div>
+
+                        {/* Net Profit Section */}
+                        <div className="pt-6 border-t-2 border-slate-900 dark:border-slate-300">
+                          <div className="flex justify-between items-center mb-4">
+                            <span className="text-xl font-bold text-slate-900 dark:text-white uppercase">Net Profit</span>
+                            <span className={`text-3xl font-bold tabular-nums ${reportData.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                              {formatCurrency.format(reportData.netProfit)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 bg-slate-50 dark:bg-slate-800 px-4 rounded">
+                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Profit Margin</span>
+                            <span className={`text-lg font-bold tabular-nums ${reportData.income > 0 && reportData.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                              {reportData.income > 0 ? `${((reportData.netProfit / reportData.income) * 100).toFixed(1)}%` : '—'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Summary Statistics */}
+                        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+                          <h4 className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase mb-3">Transaction Summary</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded">
+                              <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Income Transactions</div>
+                              <div className="text-xl font-bold text-slate-900 dark:text-white">
+                                {filteredTransactions.filter(t => t.type === 'income').length}
+                              </div>
+                            </div>
+                            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded">
+                              <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Expense Transactions</div>
+                              <div className="text-xl font-bold text-slate-900 dark:text-white">
+                                {filteredTransactions.filter(t => t.type === 'expense').length}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 text-center">
+                          <p className="text-xs text-slate-500 dark:text-slate-500">
+                            This statement has been prepared from the books of {settings.businessName}.
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                            For period ending {filterPeriod === 'month' ? referenceDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) :
+                                              filterPeriod === 'quarter' ? `Q${Math.floor(referenceDate.getMonth() / 3) + 1} ${referenceDate.getFullYear()}` :
+                                              filterPeriod === 'year' ? referenceDate.getFullYear().toString() : 'All Time'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-200 dark:border-slate-800">
+                      <button
+                        onClick={() => setShowPLPreview(false)}
+                        className="px-6 py-3 border border-slate-300 dark:border-slate-700 rounded-lg font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        Close
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsGeneratingPDF(true);
+                          setTimeout(() => {
+                            setIsGeneratingPDF(false);
+                            showToast('PDF export requires jsPDF library. Install with: npm install jspdf jspdf-autotable', 'info');
+                          }, 1000);
+                        }}
+                        disabled={isGeneratingPDF}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center gap-2 transition-colors disabled:opacity-50"
+                      >
+                        <Download className="w-4 h-4" />
+                        {isGeneratingPDF ? 'Generating...' : 'Export PDF'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div className="bg-white dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-md"><div className="flex items-center gap-2 mb-4 text-emerald-600"><Shield size={20} /><span className="font-bold uppercase tracking-widest text-xs">Tax Shield</span></div><div className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">{formatCurrency.format(reportData.taxShield)}</div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">Your expenses have lowered your estimated tax bill by this amount. Every valid business expense saves you money at tax time.</p></div>
                  <div className="bg-white dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-md"><div className="flex items-center gap-2 mb-4 text-blue-600"><BookOpen size={20} /><span className="font-bold uppercase tracking-widest text-xs">2025 Standard Deduction</span></div><div className="flex justify-between items-end mb-2"><div className="text-3xl font-extrabold text-slate-900 dark:text-white">{formatCurrency.format(reportData.stdDeduction)}</div><span className="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded capitalize text-slate-600 dark:text-slate-300">{settings.filingStatus}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">Compare your personal itemized deductions against this standard amount. This affects your personal income tax, not SE tax.</p></div>
