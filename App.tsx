@@ -1658,14 +1658,14 @@ html:not(.dark) .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-col
               <div className="absolute top-0 right-0 w-80 h-80 bg-slate-100/50 dark:bg-white/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-slate-200/50 transition-colors duration-700 pointer-events-none" />
               <label className="text-xs font-bold text-slate-500 dark:text-blue-200 mb-1 block tracking-widest uppercase font-brand">Net Profit</label>
               <div className="text-4xl font-extrabold tracking-tighter mb-8 text-slate-950 dark:text-white font-brand">{formatCurrency.format(totals.profit)}</div>
-              <div className="flex items-center gap-4 justify-start">
-                <div className="bg-slate-50 dark:bg-white/10 backdrop-blur-md px-5 py-3.5 rounded-lg border border-slate-200 dark:border-white/5">
-                   <div className="flex items-center gap-2 mb-1 text-emerald-600 dark:text-emerald-300"><TrendingUp size={16} strokeWidth={2.5} /><span className="text-xs font-bold uppercase tracking-wide">In</span></div>
-                   <div className="text-xl font-bold text-slate-900 dark:text-white">{formatCurrency.format(totals.income)}</div>
+              <div className="flex items-center justify-center gap-4">
+                <div className="bg-slate-50 dark:bg-white/10 backdrop-blur-md px-5 py-3.5 rounded-lg border border-slate-200 dark:border-white/5 min-w-[160px]">
+                   <div className="flex items-center justify-center gap-2 mb-1 text-emerald-600 dark:text-emerald-300"><TrendingUp size={16} strokeWidth={2.5} /><span className="text-xs font-bold uppercase tracking-wide">In</span></div>
+                   <div className="text-xl font-bold text-slate-900 dark:text-white text-center">{formatCurrency.format(totals.income)}</div>
                 </div>
-                <div className="bg-slate-50 dark:bg-white/10 backdrop-blur-md px-5 py-3.5 rounded-lg border border-slate-200 dark:border-white/5">
-                   <div className="flex items-center gap-2 mb-1 text-red-600 dark:text-red-300"><TrendingDown size={16} strokeWidth={2.5} /><span className="text-xs font-bold uppercase tracking-wide">Out</span></div>
-                   <div className="text-xl font-bold text-slate-900 dark:text-white">{formatCurrency.format(totals.expense)}</div>
+                <div className="bg-slate-50 dark:bg-white/10 backdrop-blur-md px-5 py-3.5 rounded-lg border border-slate-200 dark:border-white/5 min-w-[160px]">
+                   <div className="flex items-center justify-center gap-2 mb-1 text-red-600 dark:text-red-300"><TrendingDown size={16} strokeWidth={2.5} /><span className="text-xs font-bold uppercase tracking-wide">Out</span></div>
+                   <div className="text-xl font-bold text-slate-900 dark:text-white text-center">{formatCurrency.format(totals.expense)}</div>
                 </div>
               </div>
             </div>
