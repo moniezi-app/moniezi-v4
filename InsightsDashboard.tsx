@@ -208,79 +208,74 @@ export default function InsightsDashboard({
                   key={insight.id}
                   className={`${index !== 0 ? 'border-t border-slate-200 dark:border-slate-800' : ''}`}
                 >
-                  {/* Insight Header */}
-                  <div className="px-6 py-8 hover:bg-white dark:hover:bg-slate-900/30 transition-colors">
-                    <div className="flex items-start gap-5">
-                      {/* Category Icon */}
-                      <div className={`flex-shrink-0 p-3 rounded-lg ${colors.bg}`}>
+                  {/* Mobile-First Card Layout */}
+                  <div className="p-4 sm:p-6 hover:bg-white dark:hover:bg-slate-900/30 transition-colors">
+                    
+                    {/* Top Row: Icon + Title (Single Line) */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-lg ${colors.bg} flex items-center justify-center`}>
                         {getCategoryIcon(insight.category)}
                       </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        {/* Title & Action Badge */}
-                        <div className="flex items-start justify-between gap-4 mb-4">
-                          <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug">
-                            {insight.title}
-                          </h4>
-                          {insight.actionable && (
-                            <span className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold">
-                              <Target className="w-3 h-3" />
-                              Action
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Message */}
-                        <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed mb-5">
-                          {insight.message}
-                        </p>
-
-                        {/* Category Badge */}
-                        <div className="flex items-center gap-2 mb-5">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold capitalize">
-                            {insight.category}
-                          </span>
-                        </div>
-
-                        {/* Expandable Detail */}
-                        {insight.detail && (
-                          <>
-                            {isDetailExpanded && (
-                              <div className="mb-5 p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                                <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">
-                                  {insight.detail}
-                                </p>
-                              </div>
-                            )}
-                            <button
-                              onClick={() => toggleInsightDetail(insight.id)}
-                              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
-                            >
-                              {isDetailExpanded ? (
-                                <>
-                                  <ChevronUp className="w-4 h-4" />
-                                  Hide Details
-                                </>
-                              ) : (
-                                <>
-                                  <ChevronRight className="w-4 h-4" />
-                                  View Recommendation
-                                </>
-                              )}
-                            </button>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Dismiss Button */}
-                      <button
-                        onClick={() => dismiss(insight.id)}
-                        className="flex-shrink-0 px-4 py-2.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold transition-colors"
-                      >
-                        Dismiss
-                      </button>
+                      <h4 className="flex-1 text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">
+                        {insight.title}
+                      </h4>
                     </div>
+
+                    {/* Message - Full Width */}
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                      {insight.message}
+                    </p>
+
+                    {/* Badges Row - Stack on Mobile */}
+                    <div className="flex flex-wrap items-center gap-2 mb-4">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold capitalize">
+                        {insight.category}
+                      </span>
+                      {insight.actionable && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold">
+                          <Target className="w-3 h-3" />
+                          Action
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Expandable Recommendation Detail */}
+                    {insight.detail && (
+                      <div className="mb-4">
+                        {isDetailExpanded && (
+                          <div className="mb-3 p-4 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed">
+                              {insight.detail}
+                            </p>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => toggleInsightDetail(insight.id)}
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white text-sm font-semibold transition-colors"
+                        >
+                          {isDetailExpanded ? (
+                            <>
+                              <ChevronUp className="w-4 h-4" />
+                              Hide Details
+                            </>
+                          ) : (
+                            <>
+                              <ChevronRight className="w-4 h-4" />
+                              View Recommendation
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Dismiss Button - Full Width on Mobile */}
+                    <button
+                      onClick={() => dismiss(insight.id)}
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-semibold transition-colors"
+                    >
+                      Dismiss
+                    </button>
+
                   </div>
                 </div>
               );
