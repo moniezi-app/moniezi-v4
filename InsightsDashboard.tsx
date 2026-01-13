@@ -291,7 +291,7 @@ export default function InsightsDashboard({
       {/* Compact Fixed Header */}
       <div className="flex-shrink-0 relative px-5 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
         {/* Action Buttons */}
-        <div className="absolute top-4 right-5 flex items-center gap-2 z-10">
+        <div className="absolute top-4 right-5 flex items-center gap-3 z-10">
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
