@@ -75,10 +75,236 @@ import {
   ToggleLeft,
   ToggleRight
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Page, Transaction, Invoice, UserSettings, Notification, FilterPeriod, RecurrenceFrequency, FilingStatus, TaxPayment, TaxEstimationMethod, InvoiceItem, CustomCategories, Receipt as ReceiptType } from './types';
 import { CATS_IN, CATS_OUT, CATS_BILLING, DEFAULT_PAY_PREFS, DB_KEY, TAX_CONSTANTS, TAX_PLANNER_2026, getFreshDemoData } from './constants';
 import InsightsDashboard from './InsightsDashboard';
 import { getInsightCount } from './services/insightsEngine';
+
+// ===========================================
+// PDF GENERATION FUNCTION (Invoice-Style)
+// ===========================================
+const generateProfitLossPDF = (
+  transactions: Transaction[],
+  settings: UserSettings,
+  periodLabel: string,
+  reportData: { income: number; expense: number; netProfit: number }
+) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  };
+
+  const incomeByCategory = transactions.filter(t => t.type === 'income').reduce((acc, t) => {
+    acc[t.category] = (acc[t.category] || 0) + t.amount;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const expensesByCategory = transactions.filter(t => t.type === 'expense').reduce((acc, t) => {
+    acc[t.category] = (acc[t.category] || 0) + t.amount;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const profitMargin = reportData.income > 0 ? ((reportData.netProfit / reportData.income) * 100).toFixed(1) : '0.0';
+
+  let yPos = 25;
+
+  // LEFT SIDE: BUSINESS INFO
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text(settings.businessName.toUpperCase(), 20, yPos);
+  
+  yPos += 8;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  
+  if (settings.ownerName) {
+    doc.text(settings.ownerName, 20, yPos);
+    yPos += 5;
+  }
+  if (settings.businessEmail) {
+    doc.text(settings.businessEmail, 20, yPos);
+    yPos += 5;
+  }
+  if (settings.businessPhone) {
+    doc.text(settings.businessPhone, 20, yPos);
+    yPos += 5;
+  }
+  if (settings.businessAddress) {
+    doc.text(settings.businessAddress, 20, yPos);
+    yPos += 5;
+  }
+  if (settings.businessWebsite) {
+    doc.setTextColor(37, 99, 235);
+    doc.textWithLink(settings.businessWebsite, 20, yPos, { url: settings.businessWebsite });
+  }
+
+  // RIGHT SIDE: DOCUMENT TITLE
+  doc.setFontSize(32);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(37, 99, 235);
+  doc.text('PROFIT & LOSS', pageWidth - 20, 25, { align: 'right' });
+  
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(120, 120, 120);
+  
+  let rightYPos = 38;
+  doc.text('STATEMENT #', pageWidth - 20, rightYPos, { align: 'right' });
+  doc.setTextColor(0, 0, 0);
+  doc.text(`PL_${new Date().getFullYear()}_${String(new Date().getMonth() + 1).padStart(2, '0')}`, pageWidth - 65, rightYPos, { align: 'left' });
+  
+  rightYPos += 6;
+  doc.setTextColor(120, 120, 120);
+  doc.text('PERIOD', pageWidth - 20, rightYPos, { align: 'right' });
+  doc.setTextColor(0, 0, 0);
+  doc.text(periodLabel, pageWidth - 65, rightYPos, { align: 'left' });
+  
+  rightYPos += 6;
+  doc.setTextColor(120, 120, 120);
+  doc.text('GENERATED', pageWidth - 20, rightYPos, { align: 'right' });
+  doc.setTextColor(0, 0, 0);
+  doc.text(new Date().toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }), pageWidth - 65, rightYPos, { align: 'left' });
+
+  // REVENUE SECTION
+  yPos = 75;
+  doc.setFillColor(245, 245, 245);
+  doc.rect(20, yPos - 5, pageWidth - 40, 8, 'F');
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('REVENUE', 22, yPos);
+  yPos += 10;
+
+  const revenueData = Object.entries(incomeByCategory).map(([category, amount]) => [
+    category, '1', formatCurrency(amount), formatCurrency(amount)
+  ]);
+
+  autoTable(doc, {
+    startY: yPos,
+    head: [['DESCRIPTION', 'QTY', 'RATE', 'AMOUNT']],
+    body: revenueData,
+    theme: 'plain',
+    styles: { fontSize: 9, cellPadding: 3, textColor: [50, 50, 50] },
+    headStyles: { fillColor: [255, 255, 255], textColor: [100, 100, 100], fontStyle: 'bold', fontSize: 8, cellPadding: { top: 2, bottom: 4, left: 0, right: 0 } },
+    columnStyles: {
+      0: { cellWidth: 100 },
+      1: { cellWidth: 20, halign: 'center' },
+      2: { cellWidth: 30, halign: 'right' },
+      3: { cellWidth: 30, halign: 'right', fontStyle: 'bold' }
+    },
+    margin: { left: 20, right: 20 },
+    didDrawPage: (data: any) => { yPos = data.cursor.y; }
+  });
+
+  yPos += 5;
+  doc.setDrawColor(200, 200, 200);
+  doc.line(pageWidth - 85, yPos, pageWidth - 20, yPos);
+  yPos += 7;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Subtotal', pageWidth - 85, yPos, { align: 'left' });
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(16, 185, 129);
+  doc.text(formatCurrency(reportData.income), pageWidth - 20, yPos, { align: 'right' });
+
+  // EXPENSES SECTION
+  yPos += 15;
+  doc.setFillColor(245, 245, 245);
+  doc.rect(20, yPos - 5, pageWidth - 40, 8, 'F');
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('OPERATING EXPENSES', 22, yPos);
+  yPos += 10;
+
+  const expensesData = Object.entries(expensesByCategory).map(([category, amount]) => [
+    category, '1', formatCurrency(amount), formatCurrency(amount)
+  ]);
+
+  autoTable(doc, {
+    startY: yPos,
+    head: [['DESCRIPTION', 'QTY', 'RATE', 'AMOUNT']],
+    body: expensesData,
+    theme: 'plain',
+    styles: { fontSize: 9, cellPadding: 3, textColor: [50, 50, 50] },
+    headStyles: { fillColor: [255, 255, 255], textColor: [100, 100, 100], fontStyle: 'bold', fontSize: 8, cellPadding: { top: 2, bottom: 4, left: 0, right: 0 } },
+    columnStyles: {
+      0: { cellWidth: 100 },
+      1: { cellWidth: 20, halign: 'center' },
+      2: { cellWidth: 30, halign: 'right' },
+      3: { cellWidth: 30, halign: 'right', fontStyle: 'bold' }
+    },
+    margin: { left: 20, right: 20 },
+    didDrawPage: (data: any) => { yPos = data.cursor.y; }
+  });
+
+  yPos += 5;
+  doc.setDrawColor(200, 200, 200);
+  doc.line(pageWidth - 85, yPos, pageWidth - 20, yPos);
+  yPos += 7;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Subtotal', pageWidth - 85, yPos, { align: 'left' });
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(239, 68, 68);
+  doc.text(formatCurrency(reportData.expense), pageWidth - 20, yPos, { align: 'right' });
+
+  // NET PROFIT SECTION
+  yPos += 15;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  doc.line(pageWidth - 85, yPos, pageWidth - 20, yPos);
+  yPos += 10;
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('NET PROFIT', pageWidth - 85, yPos, { align: 'left' });
+  doc.setFontSize(18);
+  const profitColor = reportData.netProfit >= 0 ? [16, 185, 129] : [239, 68, 68];
+  doc.setTextColor(profitColor[0], profitColor[1], profitColor[2]);
+  doc.text(formatCurrency(reportData.netProfit), pageWidth - 20, yPos, { align: 'right' });
+  yPos += 8;
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Profit Margin: ${profitMargin}%`, pageWidth - 20, yPos, { align: 'right' });
+
+  // FOOTER SECTION
+  yPos = pageHeight - 40;
+  doc.setFillColor(250, 250, 250);
+  doc.rect(20, yPos, pageWidth - 40, 25, 'F');
+  yPos += 7;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(120, 120, 120);
+  doc.text('STATEMENT NOTES', 25, yPos);
+  yPos += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text(`This statement has been prepared from the books of ${settings.businessName}.`, 25, yPos);
+  yPos += 5;
+  doc.text(`For period ending: ${periodLabel}`, 25, yPos);
+  yPos += 5;
+  doc.text(`Generated on: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, 25, yPos);
+
+  // THANK YOU MESSAGE
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(150, 150, 150);
+  doc.text('THANK YOU FOR YOUR BUSINESS', pageWidth / 2, pageHeight - 15, { align: 'center' });
+
+  const fileName = `PL-Statement-${periodLabel.replace(/\s+/g, '-')}.pdf`;
+  doc.save(fileName);
+};
+
 // --- Utility: UUID Generator ---
 const generateId = (prefix: string) => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -2610,10 +2836,25 @@ html:not(.dark) .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-col
                       <button
                         onClick={() => {
                           setIsGeneratingPDF(true);
-                          setTimeout(() => {
-                            setIsGeneratingPDF(false);
-                            showToast('PDF export requires jsPDF library. Install with: npm install jspdf jspdf-autotable', 'info');
-                          }, 1000);
+                          try {
+                            generateProfitLossPDF(
+                              filteredTransactions,
+                              settings,
+                              filterPeriod === 'month' 
+                                ? referenceDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                                : filterPeriod === 'quarter' 
+                                  ? `Q${Math.floor(referenceDate.getMonth() / 3) + 1} ${referenceDate.getFullYear()}`
+                                  : filterPeriod === 'year'
+                                    ? referenceDate.getFullYear().toString()
+                                    : 'All Time',
+                              reportData
+                            );
+                            showToast('PDF exported successfully!', 'success');
+                          } catch (error) {
+                            console.error('PDF generation error:', error);
+                            showToast('Failed to generate PDF. Please try again.', 'error');
+                          }
+                          setIsGeneratingPDF(false);
                         }}
                         disabled={isGeneratingPDF}
                         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center gap-2 transition-colors disabled:opacity-50"
