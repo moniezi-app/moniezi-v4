@@ -1685,9 +1685,40 @@ html:not(.dark) .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-col
                </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-               <StatCard label="Profit Margin" value={totals.income > 0 ? `${((totals.profit / totals.income) * 100).toFixed(1)}%` : "—"} onClick={() => setCurrentPage(Page.Reports)} subText="YTD" icon={<TrendingUp size={24} strokeWidth={1.5} />} />
-               <StatCard label={totals.overdueAmount > 0 ? "Actions Needed" : "Pending"} value={formatCurrency.format(totals.pendingAmount)} colorClass={totals.overdueAmount > 0 ? "text-red-600 dark:text-red-400" : undefined} onClick={() => setCurrentPage(Page.Invoices)} subText={totals.overdueAmount > 0 ? "Has Overdue" : "Unpaid"} subTextClass={totals.overdueAmount > 0 ? "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300" : undefined} icon={totals.overdueAmount > 0 ? <AlertCircle size={24} strokeWidth={1.5} className="text-red-500" /> : <FileText size={24} strokeWidth={1.5} />} />
+            <div className="bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-6 rounded-xl shadow-md border border-slate-200 dark:border-slate-800">
+               <div className="grid grid-cols-2 gap-6">
+                  {/* Profit Margin */}
+                  <div className="flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 p-4 rounded-lg transition-colors" onClick={() => setCurrentPage(Page.Reports)}>
+                     <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center mb-3">
+                        <TrendingUp size={24} strokeWidth={1.5} className="text-slate-700 dark:text-slate-300" />
+                     </div>
+                     <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                        {totals.income > 0 ? `${((totals.profit / totals.income) * 100).toFixed(1)}%` : "—"}
+                     </div>
+                     <div className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-1">Profit Margin</div>
+                     <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-full">YTD</div>
+                  </div>
+
+                  {/* Actions Needed / Pending */}
+                  <div className="flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30 p-4 rounded-lg transition-colors border-l border-slate-200 dark:border-slate-800" onClick={() => setCurrentPage(Page.Invoices)}>
+                     <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${totals.overdueAmount > 0 ? 'bg-red-100 dark:bg-red-950/40' : 'bg-slate-100 dark:bg-slate-900'}`}>
+                        {totals.overdueAmount > 0 ? (
+                           <AlertCircle size={24} strokeWidth={1.5} className="text-red-500" />
+                        ) : (
+                           <FileText size={24} strokeWidth={1.5} className="text-slate-700 dark:text-slate-300" />
+                        )}
+                     </div>
+                     <div className={`text-3xl font-bold mb-1 ${totals.overdueAmount > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
+                        {formatCurrency.format(totals.pendingAmount)}
+                     </div>
+                     <div className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-1">
+                        {totals.overdueAmount > 0 ? "Actions Needed" : "Pending"}
+                     </div>
+                     <div className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${totals.overdueAmount > 0 ? 'bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300' : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400'}`}>
+                        {totals.overdueAmount > 0 ? "Has Overdue" : "Unpaid"}
+                     </div>
+                  </div>
+               </div>
             </div>
             
             <div>
